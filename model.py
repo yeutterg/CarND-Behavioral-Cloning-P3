@@ -3,6 +3,7 @@ import os
 import cv2
 import sklearn
 import numpy as np
+from random import shuffle
 
 lines = []
 with open('./data/driving_log.csv') as csvfile:
