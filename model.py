@@ -14,20 +14,8 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Dropout
 
-ospath = './data/IMG/'
-
-def import_csv():
-    """
-    Imports the CSV file as an array of lines
-    """
-    lines = []
-    with open('./data/driving_log.csv') as csvfile:
-        reader = csv.reader(csvfile)
-        for line in reader:
-            lines.append(line)
-
-    lines.pop(0) # Remove the header info from the CSV file
-    return lines
+img_path = './data/IMG/'
+log_path = './data/driving_log.csv'
 
 def process_img(image):
     """
@@ -52,7 +40,7 @@ def generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 for i in range(3):
-                    name = ospath + batch_sample[i].split('/')[-1]
+                    name = img_path + batch_sample[i].split('/')[-1]
                     image = cv2.imread(name)
                     angle = float(batch_sample[3])
                     img = process_img(image)
@@ -63,10 +51,24 @@ def generator(samples, batch_size=32):
             y_train = np.array(angles)
             yield sklearn.utils.shuffle(X_train, y_train)
 
-def lrc(data, steer_angle):
+def import_csv():
+    """
+    Imports the CSV file as an array of lines
+    """
+    lines = []
+    with open(log_path) as csvfile:
+        reader = csv.reader(csvfile)
+        for line in reader:
+            lines.append(line)
+
+    lines.pop(0) # Remove the header info from the CSV file
+    return lines
+
+def import_lrc(steer_angle):
     """
     Import the left, right, and center images from the lines of the csv file
     """
+
     img_fields = {
         "center": lambda x: x,
         "left": lambda x: x + steer_angle,
@@ -75,21 +77,23 @@ def lrc(data, steer_angle):
 
     samples = []
 
-    for row, val in data:
+    data = import_csv()
+
+    for row in data:
         for field in img_fields:
             steering = float(row["steering"])
-            img_path = ospath + os.path.split(row[field][1])
-            samples.append((img_path, img_fields[field](steering), val))
+            image_path = img_path + os.path.split(row[field][1])
+            samples.append((image_path, img_fields[field](steering)))
 
     return samples
 
-ch, row, col = 160, 320, 3  # Trimmed image format
+ch, rw, col = 160, 320, 3  # Trimmed image format
 
 def lenet_model():
     #LeNet model
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5,
-                     input_shape=(ch, row, col)))
+                     input_shape=(ch, rw, col)))
     model.add(Cropping2D(cropping=((70,25),(0,0))))
     model.add(Convolution2D(6,5,5,activation="relu"))
     model.add(MaxPooling2D())
@@ -107,7 +111,7 @@ def nvidia_model():
     #NVIDIA model
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5),
-                     input_shape=(ch, row, col))
+                     input_shape=(ch, rw, col))
     model.add(Cropping2D(cropping=((70, 25), (0, 0))))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation="relu"))
@@ -125,8 +129,7 @@ def nvidia_model():
 
 def run_model(num_epochs=3, batch_sz=32, steer_ang=0.25):
     # Import the data and split into training and validation sets
-    lines = import_csv()
-    lines = lrc(lines, steer_ang)
+    lines = import_lrc(steer_ang)
     train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 
     # compile and train the model using the generator function
@@ -135,24 +138,24 @@ def run_model(num_epochs=3, batch_sz=32, steer_ang=0.25):
 
     # model = lenet_model()
     model = nvidia_model()
+    model.save('model.h5')
 
-    fitgen = model.fit_generator(train_generator,
+    return model.fit_generator(train_generator,
                                  samples_per_epoch=len(3*train_samples),
                                  validation_data=validation_generator,
                                  nb_val_samples=len(validation_samples),
                                  nb_epoch=num_epochs)
 
-    model.save('model.h5')
-
+def plot_results(history):
     # Plot training and validation loss
-    plt.plot(fitgen.history['loss'])
-    plt.plot(fitgen.history['val_loss'])
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
     plt.title('model mean squared error loss')
     plt.ylabel('mean squared error loss')
     plt.xlabel('epoch')
     plt.legend(['training set', 'validation set'], loc='upper right')
     plt.savefig("training_validation_loss_plot.jpg")
 
-
-run_model(3, 128, 0.25)
+history = run_model(3, 128, 0.25)
+plot_results(history)
 exit()
