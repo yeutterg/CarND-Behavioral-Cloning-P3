@@ -14,9 +14,11 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Dropout
 
+ospath = './data/IMG/'
+
 def import_csv():
     """
-    Imports the CSV file
+    Imports the CSV file as an array of lines
     """
     lines = []
     with open('./data/driving_log.csv') as csvfile:
@@ -35,12 +37,12 @@ def process_img(image):
     img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
 
-
 def generator(samples, batch_size=32):
     """
     Generator to reduce memory footprint when training
     """
     num_samples = len(samples)
+
     while 1: # Loop forever so the generator never terminates
         shuffle(samples)
         for offset in range(0, num_samples, batch_size):
@@ -50,7 +52,7 @@ def generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 for i in range(3):
-                    name = './data/IMG/'+batch_sample[i].split('/')[-1]
+                    name = ospath + batch_sample[i].split('/')[-1]
                     image = cv2.imread(name)
                     angle = float(batch_sample[3])
                     img = process_img(image)
@@ -60,6 +62,26 @@ def generator(samples, batch_size=32):
             X_train = np.array(images)
             y_train = np.array(angles)
             yield sklearn.utils.shuffle(X_train, y_train)
+
+def lrc(data, steer_angle):
+    """
+    Import the left, right, and center images from the lines of the csv file
+    """
+    img_fields = {
+        "center": lambda x: x,
+        "left": lambda x: x + steer_angle,
+        "right": lambda x: x - steer_angle
+    }
+
+    samples = []
+
+    for row, val in data:
+        for field in img_fields:
+            steering = float(row["steering"])
+            img_path = ospath + os.path.split(row[field][1])
+            samples.append((img_path, img_fields[field](steering), val))
+
+    return samples
 
 ch, row, col = 160, 320, 3  # Trimmed image format
 
@@ -101,23 +123,24 @@ def nvidia_model():
     model.compile(loss='mse', optimizer='adam')
     return model
 
-def run_model():
+def run_model(num_epochs=3, batch_sz=32, steer_ang=0.25):
     # Import the data and split into training and validation sets
     lines = import_csv()
+    lines = lrc(lines, steer_ang)
     train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 
     # compile and train the model using the generator function
-    train_generator = generator(train_samples, batch_size=32)
-    validation_generator = generator(validation_samples, batch_size=32)
-    
+    train_generator = generator(train_samples, batch_size=batch_sz)
+    validation_generator = generator(validation_samples, batch_size=batch_sz)
+
     # model = lenet_model()
     model = nvidia_model()
 
     fitgen = model.fit_generator(train_generator,
-                             samples_per_epoch=len(3*train_samples),
-                             validation_data=validation_generator,
-                             nb_val_samples=len(validation_samples),
-                             nb_epoch=5)
+                                 samples_per_epoch=len(3*train_samples),
+                                 validation_data=validation_generator,
+                                 nb_val_samples=len(validation_samples),
+                                 nb_epoch=num_epochs)
 
     model.save('model.h5')
 
@@ -131,5 +154,5 @@ def run_model():
     plt.savefig("training_validation_loss_plot.jpg")
 
 
-run_model()
+run_model(3, 128, 0.25)
 exit()
