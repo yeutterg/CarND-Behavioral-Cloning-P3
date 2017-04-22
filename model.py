@@ -40,7 +40,7 @@ def generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 for i in range(3):
-                    name = img_path + batch_sample[i].split('/')[-1]
+                    name = batch_sample[i].split('/')[-1]
                     image = cv2.imread(name)
                     angle = float(batch_sample[3])
                     img = process_img(image)
