@@ -22,10 +22,6 @@ model = None
 prev_image_array = None
 
 def process_img(image):
-    # Crop and scale to 66x200x3
-    img = image[50:140,:,:]
-    img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
-
     # Convert to YUV color space
     img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     return img
