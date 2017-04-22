@@ -21,6 +21,15 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+def process_img(image):
+    # Crop and scale to 66x200x3
+    img = image[50:140,:,:]
+    img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
+
+    # Convert to YUV color space
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
+    return img
+
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -47,7 +56,6 @@ controller = SimplePIController(0.1, 0.002)
 set_speed = 9
 controller.set_desired(set_speed)
 
-
 @sio.on('telemetry')
 def telemetry(sid, data):
     if data:
@@ -61,7 +69,8 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        img = process_img(image_array)
+        steering_angle = float(model.predict(img[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))
 
