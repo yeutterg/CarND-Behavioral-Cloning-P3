@@ -68,7 +68,6 @@ def import_lrc(steer_angle):
     """
     Import the left, right, and center images from the lines of the csv file
     """
-
     samples = []
 
     data = import_csv()
@@ -88,6 +87,7 @@ def import_lrc(steer_angle):
         right_path = data_path + row[2]
         samples.append((right_path, steering - steer_angle))
 
+    np.random.shuffle(samples)
     return samples
 
 ch, rw, col = 160, 320, 3  # Trimmed image format
@@ -95,9 +95,9 @@ ch, rw, col = 160, 320, 3  # Trimmed image format
 def lenet_model():
     #LeNet model
     model = Sequential()
-    model.add(Lambda(lambda x: x / 255.0 - 0.5,
-                     input_shape=(ch, rw, col)))
-    model.add(Cropping2D(cropping=((70,25),(0,0))))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5))
+    model.add(Cropping2D(cropping=((70,25),(0,0)),
+                         input_shape=(ch, rw, col)))
     model.add(Convolution2D(6,5,5,activation="relu"))
     model.add(MaxPooling2D())
     model.add(Convolution2D(6,5,5,activation="relu"))
@@ -113,9 +113,9 @@ def lenet_model():
 def nvidia_model(): 
     #NVIDIA model
     model = Sequential()
-    model.add(Lambda(lambda x: x / 255.0 - 0.5),
-                     input_shape=(ch, rw, col))
-    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5))
+    model.add(Cropping2D(cropping=((70, 25), (0, 0)),
+                         input_shape=(ch, rw, col)))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation="relu"))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation="relu"))
@@ -130,9 +130,9 @@ def nvidia_model():
     model.compile(loss='mse', optimizer='adam')
     return model
 
-def run_model(num_epochs=3, batch_sz=32, steer_ang=0.25):
+def run_model(num_epochs=3, batch_sz=32, steer_angle=0.25):
     # Import the data and split into training and validation sets
-    lines = import_lrc(steer_ang)
+    lines = import_lrc(steer_angle)
     train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 
     # compile and train the model using the generator function
