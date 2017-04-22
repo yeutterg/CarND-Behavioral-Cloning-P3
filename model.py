@@ -81,7 +81,7 @@ def import_lrc(steer_angle):
 
     for row in data:
         for field in img_fields:
-            steering = float(row["steering"])
+            steering = float(row[3])
             image_path = img_path + os.path.split(row[field][1])
             samples.append((image_path, img_fields[field](steering)))
 
