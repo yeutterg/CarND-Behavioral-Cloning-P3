@@ -14,8 +14,8 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Dropout
 
-img_path = './data/IMG/'
-log_path = './data/driving_log.csv'
+data_path = './data/'
+log_path = data_path + 'driving_log.csv'
 
 def process_img(image):
     """
@@ -69,21 +69,24 @@ def import_lrc(steer_angle):
     Import the left, right, and center images from the lines of the csv file
     """
 
-    img_fields = {
-        "center": lambda x: x,
-        "left": lambda x: x + steer_angle,
-        "right": lambda x: x - steer_angle
-    }
-
     samples = []
 
     data = import_csv()
 
     for row in data:
-        for field in img_fields:
-            steering = float(row[3])
-            image_path = img_path + os.path.split(row[field][1])
-            samples.append((image_path, img_fields[field](steering)))
+        steering = float(row[3])
+
+        # center image
+        center_path = data_path + row[0]
+        samples.append((center_path, steering))
+
+        # left image
+        left_path = data_path + row[1]
+        samples.append((left_path, steering + steer_angle))
+
+        # right image
+        right_path = data_path + row[2]
+        samples.append((right_path, steering - steer_angle))
 
     return samples
 
