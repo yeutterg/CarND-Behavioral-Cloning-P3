@@ -8,6 +8,12 @@ from random import shuffle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
+from keras.models import Sequential
+from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers.convolutional import Convolution2D
+from keras.layers.pooling import MaxPooling2D
+from keras.layers.core import Dropout
+
 def import_csv():
     """
     Imports the CSV file
@@ -55,68 +61,75 @@ def generator(samples, batch_size=32):
             y_train = np.array(angles)
             yield sklearn.utils.shuffle(X_train, y_train)
 
-# Import the data and split into training and validation sets
-lines = import_csv()
-train_samples, validation_samples = train_test_split(lines, test_size=0.2)
-
-# compile and train the model using the generator function
-train_generator = generator(train_samples, batch_size=32)
-validation_generator = generator(validation_samples, batch_size=32)
-
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
-from keras.layers.convolutional import Convolution2D
-from keras.layers.pooling import MaxPooling2D
-from keras.layers.core import Dropout
-
 ch, row, col = 160, 320, 3  # Trimmed image format
 
-#LeNet model
-#model = Sequential()
-#model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160,320,3)))
-#model.add(Cropping2D(cropping=((70,25),(0,0))))
-#model.add(Convolution2D(6,5,5,activation="relu"))
-#model.add(MaxPooling2D())
-#model.add(Convolution2D(6,5,5,activation="relu"))
-#model.add(MaxPooling2D())
-#model.add(Flatten())
-#model.add(Dense(120))
-#model.add(Dense(84))
-#model.add(Dense(1))
-
-#NVIDIA model
-model = Sequential()
-model.add(Lambda(lambda x: x / 255.0 - 0.5))
-model.add(Cropping2D(cropping=((70, 25), (0, 0)),
+def lenet_model():
+    #LeNet model
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5,
                      input_shape=(ch, row, col)))
-model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(64, 3, 3, activation="relu"))
-model.add(Convolution2D(64, 3, 3, activation="relu"))
-model.add(Flatten())
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(1))
+    model.add(Cropping2D(cropping=((70,25),(0,0))))
+    model.add(Convolution2D(6,5,5,activation="relu"))
+    model.add(MaxPooling2D())
+    model.add(Convolution2D(6,5,5,activation="relu"))
+    model.add(MaxPooling2D())
+    model.add(Flatten())
+    model.add(Dense(120))
+    model.add(Dense(84))
+    model.add(Dense(1))
 
-model.compile(loss='mse', optimizer='adam')
+    model.compile(loss='mse', optimizer='adam')
+    return model
 
-fitgen = model.fit_generator(train_generator,
+def nvidia_model(): 
+    #NVIDIA model
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5),
+                     input_shape=(ch, row, col))
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation="relu"))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation="relu"))
+    model.add(Convolution2D(64, 3, 3, activation="relu"))
+    model.add(Convolution2D(64, 3, 3, activation="relu"))
+    model.add(Flatten())
+    model.add(Dense(100))
+    model.add(Dense(50))
+    model.add(Dense(10))
+    model.add(Dense(1))
+
+    model.compile(loss='mse', optimizer='adam')
+    return model
+
+def run_model():
+    # Import the data and split into training and validation sets
+    lines = import_csv()
+    train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+
+    # compile and train the model using the generator function
+    train_generator = generator(train_samples, batch_size=32)
+    validation_generator = generator(validation_samples, batch_size=32)
+    
+    # model = lenet_model()
+    model = nvidia_model()
+
+    fitgen = model.fit_generator(train_generator,
                              samples_per_epoch=len(3*train_samples),
                              validation_data=validation_generator,
                              nb_val_samples=len(validation_samples),
                              nb_epoch=5)
 
-model.save('model.h5')
+    model.save('model.h5')
 
-# Plot training and validation loss
-plt.plot(fitgen.history['loss'])
-plt.plot(fitgen.history['val_loss'])
-plt.title('model mean squared error loss')
-plt.ylabel('mean squared error loss')
-plt.xlabel('epoch')
-plt.legend(['training set', 'validation set'], loc='upper right')
-plt.savefig("training_validation_loss_plot.jpg")
+    # Plot training and validation loss
+    plt.plot(fitgen.history['loss'])
+    plt.plot(fitgen.history['val_loss'])
+    plt.title('model mean squared error loss')
+    plt.ylabel('mean squared error loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'], loc='upper right')
+    plt.savefig("training_validation_loss_plot.jpg")
 
+
+run_model()
 exit()
