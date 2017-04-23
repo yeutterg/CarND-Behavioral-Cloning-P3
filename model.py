@@ -39,13 +39,11 @@ def generator(samples, batch_size=32):
             images = []
             angles = []
             for batch_sample in batch_samples:
-                for i in range(3):
-                    name = batch_sample[i].split('/')[-1]
-                    image = cv2.imread(name)
-                    angle = float(batch_sample[3])
-                    img = process_img(image)
-                    images.append(img)
-                    angles.append(angle)
+                image = cv2.imread(batch_sample[0])
+                angle = float(batch_sample[1])
+                img = process_img(image)
+                images.append(img)
+                angles.append(angle)
 
             X_train = np.array(images)
             y_train = np.array(angles)
@@ -77,15 +75,15 @@ def import_lrc(steer_angle):
 
         # center image
         center_path = data_path + row[0]
-        samples.append((center_path, "center", steering))
+        samples.append((center_path, steering))
 
         # left image
         left_path = data_path + row[1]
-        samples.append((left_path, "left", steering + steer_angle))
+        samples.append((left_path, steering + steer_angle))
 
         # right image
         right_path = data_path + row[2]
-        samples.append((right_path, "right", steering - steer_angle))
+        samples.append((right_path, steering - steer_angle))
 
     np.random.shuffle(samples)
     return samples
