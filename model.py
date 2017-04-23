@@ -77,15 +77,15 @@ def import_lrc(steer_angle):
 
         # center image
         center_path = data_path + row[0]
-        samples.append((center_path, steering))
+        samples.append((center_path, "center", steering))
 
         # left image
         left_path = data_path + row[1]
-        samples.append((left_path, steering + steer_angle))
+        samples.append((left_path, "left", steering + steer_angle))
 
         # right image
         right_path = data_path + row[2]
-        samples.append((right_path, steering - steer_angle))
+        samples.append((right_path, "right", steering - steer_angle))
 
     np.random.shuffle(samples)
     return samples
