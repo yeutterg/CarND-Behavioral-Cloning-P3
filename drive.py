@@ -23,8 +23,11 @@ model = None
 prev_image_array = None
 
 def process_img(image):
+    # Flip horizontally
+    img = cv2.flip(image, 0)
+
     # Convert to YUV color space
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     return img
 
 
