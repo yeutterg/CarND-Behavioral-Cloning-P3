@@ -24,7 +24,7 @@ prev_image_array = None
 
 def process_img(image):
     # Convert to YUV color space
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
+    img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
     return img
 
 
