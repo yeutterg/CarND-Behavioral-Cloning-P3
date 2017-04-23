@@ -22,7 +22,7 @@ def process_img(image):
     Preprocessing including color space conversion
     """
     # Convert to YUV color space
-    print image
+    print(image)
     img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
 
