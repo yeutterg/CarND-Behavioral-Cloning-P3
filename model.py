@@ -45,8 +45,8 @@ def generator(samples, batch_size=32):
             for batch_sample in batch_samples:
                 image = cv2.imread(batch_sample[0], 1)
                 angle = batch_sample[1]
-                # img = process_img(image)
-                images.append(image)
+                img = process_img(image)
+                images.append(img)
                 angles.append(angle)
 
             X_train = np.array(images)
