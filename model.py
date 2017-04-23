@@ -23,7 +23,7 @@ def process_img(image):
     Preprocessing 
     """
     # Flip horizontally
-    img = cv2.flip(image, 0)
+    # img = cv2.flip(image, 0)
 
     # Convert to YUV color space
     img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
