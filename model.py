@@ -22,6 +22,7 @@ def process_img(image):
     Preprocessing including color space conversion
     """
     # Convert to YUV color space
+    print image
     img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
 
@@ -40,7 +41,7 @@ def generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 image = cv2.imread(batch_sample[0], 1)
-                angle = float(batch_sample[1])
+                angle = batch_sample[1]
                 img = process_img(image)
                 images.append(img)
                 angles.append(angle)
