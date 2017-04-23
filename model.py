@@ -15,6 +15,7 @@ from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Dropout
 
 data_path = './data/'
+img_path = data_path + 'IMG/'
 log_path = data_path + 'driving_log.csv'
 
 def process_img(image):
@@ -75,15 +76,15 @@ def import_lrc(steer_angle):
         steering = float(row[3])
 
         # center image
-        center_path = data_path + row[0].split("/")[-1]
+        center_path = img_path + row[0].split("/")[-1]
         samples.append((center_path, steering))
 
         # left image
-        left_path = data_path + row[1].split("/")[-1]
+        left_path = img_path + row[1].split("/")[-1]
         samples.append((left_path, steering + steer_angle))
 
         # right image
-        right_path = data_path + row[2].split("/")[-1]
+        right_path = img_path + row[2].split("/")[-1]
         samples.append((right_path, steering - steer_angle))
 
     np.random.shuffle(samples)
