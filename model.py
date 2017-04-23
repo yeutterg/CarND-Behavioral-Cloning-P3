@@ -26,7 +26,7 @@ def process_img(image):
     # img = cv2.flip(image, 0)
 
     # Convert to YUV color space
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
 
 def generator(samples, batch_size=32):
