@@ -8,7 +8,7 @@ from random import shuffle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
@@ -22,9 +22,6 @@ def process_img(image):
     """
     Preprocessing 
     """
-    # Flip horizontally
-    # img = cv2.flip(image, 0)
-
     # Convert to YUV color space
     img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
@@ -46,6 +43,11 @@ def generator(samples, batch_size=32):
                 image = cv2.imread(batch_sample[0], 1)
                 angle = batch_sample[1]
                 img = process_img(image)
+
+                # Flip horizontally
+                img = cv2.flip(image, 0)
+                angle = -angle
+
                 images.append(img)
                 angles.append(angle)
 
@@ -149,9 +151,13 @@ def run_model(num_epochs=3, batch_sz=32, steer_angle=0.25):
                                  samples_per_epoch=len(3*train_samples),
                                  validation_data=validation_generator,
                                  nb_val_samples=len(validation_samples),
-                                 nb_epoch=num_epochs)
+                                 nb_epoch=num_epochs,
+                                 verbose=1)
 
 def plot_results(history):
+    # Print the keys in the history object
+    print(history.history.keys())
+
     # Plot training and validation loss
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -160,6 +166,7 @@ def plot_results(history):
     plt.xlabel('epoch')
     plt.legend(['training set', 'validation set'], loc='upper right')
     plt.savefig("training_validation_loss_plot.jpg")
+    plt.show()
 
 history = run_model(3, 128, 0.25)
 plot_results(history)
