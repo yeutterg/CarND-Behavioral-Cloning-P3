@@ -24,6 +24,7 @@ def process_img(image):
     """
     # Scale image
     img = cv2.resize(image, (0,0), fx=0.5, fy=0.5) 
+    print(cv2.GetSize(img))
 
     # Convert to YUV color space
     img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
