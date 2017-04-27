@@ -121,7 +121,7 @@ def lenet_model():
 def nvidia_model(): 
     #NVIDIA model
     model = Sequential()
-    model.add(Cropping2D(cropping=((70, 25), (0, 0)),
+    model.add(Cropping2D(cropping=((17, 6), (0, 0)),
                          input_shape=(ch, rw, col)))
     model.add(Lambda(lambda x: x / 255.0 - 0.5))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
