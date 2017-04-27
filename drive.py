@@ -22,9 +22,12 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+# ch, rw, col = 160, 320, 3  # Trimmed image format
+ch, rw, col = 40, 80, 3  # Trimmed image format
+
 def process_img(image):
     # Scale image
-    img = cv2.resize(image, (0,0), fx=0.5, fy=0.5) 
+    img = cv2.resize(image, (ch,rw)) 
 
     # Convert to YUV color space
     img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
