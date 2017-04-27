@@ -13,8 +13,6 @@ from PIL import Image
 from flask import Flask
 from io import BytesIO
 
-from scipy.misc import imresize
-
 from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
@@ -26,10 +24,10 @@ prev_image_array = None
 
 def process_img(image):
     # Scale image
-    img = imresize(image, 0.5)
+    img = cv2.resize(image, (0,0), fx=0.5, fy=0.5) 
 
     # Convert to YUV color space
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     return img
 
 

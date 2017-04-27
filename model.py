@@ -8,8 +8,6 @@ from random import shuffle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-from scipy.misc import imresize
-
 from keras.models import Sequential, Model
 from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers.convolutional import Convolution2D
@@ -25,7 +23,7 @@ def process_img(image):
     Preprocessing 
     """
     # Scale image
-    img = imresize(image, 0.5)
+    img = cv2.resize(image, (0,0), fx=0.5, fy=0.5) 
 
     # Convert to YUV color space
     img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
@@ -99,7 +97,8 @@ def import_lrc(steer_angle):
     np.random.shuffle(samples)
     return samples
 
-ch, rw, col = 160, 320, 3  # Trimmed image format
+# ch, rw, col = 160, 320, 3  # Trimmed image format
+ch, rw, col = 80, 160, 3  # Trimmed image format
 
 def lenet_model():
     #LeNet model
