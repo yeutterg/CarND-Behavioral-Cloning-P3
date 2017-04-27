@@ -18,18 +18,18 @@ data_path = './data/'
 img_path = data_path + 'IMG/'
 log_path = data_path + 'driving_log.csv'
 
-# ch, rw, col = 160, 320, 3  # Trimmed image format
-ch, rw, col = 40, 80, 3  # Trimmed image format
+ch, rw, col = 160, 320, 3  # Trimmed image format
+# ch, rw, col = 40, 80, 3  # Trimmed image format
 
 def process_img(image):
     """
     Preprocessing 
     """
     # Scale image
-    img = cv2.resize(image, (ch,rw)) 
+    # img = cv2.resize(image, (ch,rw)) 
 
     # Convert to YUV color space
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return img
 
 def generator(samples, batch_size=32):
@@ -121,7 +121,7 @@ def lenet_model():
 def nvidia_model(): 
     #NVIDIA model
     model = Sequential()
-    model.add(Cropping2D(cropping=((17, 6), (0, 0)),
+    model.add(Cropping2D(cropping=((70, 25), (0, 0)),
                          input_shape=(ch, rw, col)))
     model.add(Lambda(lambda x: x / 255.0 - 0.5))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
