@@ -8,6 +8,8 @@ from random import shuffle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
+from scipy.misc import imresize
+
 from keras.models import Sequential, Model
 from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers.convolutional import Convolution2D
@@ -22,8 +24,11 @@ def process_img(image):
     """
     Preprocessing 
     """
+    # Scale image
+    img = imresize(image, 0.5)
+
     # Convert to YUV color space
-    img = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
     return img
 
 def generator(samples, batch_size=32):
@@ -45,7 +50,7 @@ def generator(samples, batch_size=32):
                 img = process_img(image)
 
                 # Flip horizontally
-                img = cv2.flip(image, 0)
+                img = cv2.flip(img, 0)
                 angle = -angle
 
                 images.append(img)
@@ -168,6 +173,6 @@ def plot_results(history):
     plt.savefig("training_validation_loss_plot.jpg")
     plt.show()
 
-history = run_model(3, 128, 0.25)
+history = run_model(5, 128, 0.25)
 plot_results(history)
 exit()

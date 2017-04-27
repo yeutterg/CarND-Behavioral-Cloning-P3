@@ -13,6 +13,8 @@ from PIL import Image
 from flask import Flask
 from io import BytesIO
 
+from scipy.misc import imresize
+
 from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
@@ -23,8 +25,8 @@ model = None
 prev_image_array = None
 
 def process_img(image):
-    # Flip horizontally
-    # img = cv2.flip(image, 0)
+    # Scale image
+    img = imresize(image, 0.5)
 
     # Convert to YUV color space
     img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
@@ -71,6 +73,10 @@ def telemetry(sid, data):
         image_array = np.asarray(image)
         img = process_img(image_array)
         steering_angle = float(model.predict(img[None, :, :, :], batch_size=1))
+
+        # Flip horizontally
+        img = cv2.flip(img, 0)
+        steering_angle = -steering_angle
 
         throttle = controller.update(float(speed))
 
