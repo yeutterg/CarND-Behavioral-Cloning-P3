@@ -27,7 +27,7 @@ ch, rw, col = 40, 80, 3  # Trimmed image format
 
 def process_img(image):
     # Scale image
-    # img = cv2.resize(image, (ch,rw)) 
+    # img = cv2.resize( image, (ch,rw)) 
 
     # Convert to YUV color space
     img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
