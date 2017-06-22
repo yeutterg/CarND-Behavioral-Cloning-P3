@@ -17,20 +17,35 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
 prev_image_array = None
 
 # ch, rw, col = 160, 320, 3  # Trimmed image format
-ch, rw, col = 40, 80, 3  # Trimmed image format
+# ch, rw, col = 40, 80, 3  # Trimmed image format
 
 def process_img(image):
-    # Scale image
-    # img = cv2.resize( image, (ch,rw)) 
-
+    """
+    Preprocessing for an image
+    
+    :param image: The image to be processed
+    :return img: The processed image
+    """
+    # Crop from 160x320x3 to 40x320x3
+    img = image[50:140,:,:]
+    
+    # Apply a minor Gaussian blur
+    # img = cv2.GaussianBlur(img, (3,3), 0)
+    
+    # Scale to match NVIDIA input size 66x200x3
+    img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
+    
     # Convert to YUV color space
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    # img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     return img
 
 
@@ -76,8 +91,12 @@ def telemetry(sid, data):
         steering_angle = float(model.predict(img[None, :, :, :], batch_size=1))
 
         # Flip horizontally
-        img = cv2.flip(img, 0)
-        steering_angle = -steering_angle
+        # img = cv2.flip(img, 0)
+        # steering_angle = -steering_angle
+
+        # Plot test images
+        # plt.imshow(img)
+        # plt.savefig('test_images/test.png')
 
         throttle = controller.update(float(speed))
 
