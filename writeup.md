@@ -25,12 +25,12 @@ The goals / steps of this project are the following:
 [recovery_3]: ./output_images/recovery_3.png "Recovery Image 3"
 
 ## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
 
 ---
-###Files Submitted & Code Quality
+### Files Submitted & Code Quality
 
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
 * model.py containing the script to create and train the model (the same code without debug statements is found in model.ipynb, where the project was actually run)
@@ -38,7 +38,7 @@ My project includes the following files:
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
 
-####2. Submission includes functional code
+#### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
@@ -53,13 +53,13 @@ python video.py video
 
 The output will be a file called 'video.mp4.'
 
-####3. Submission code is usable and readable
+#### 3. Submission code is usable and readable
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. An appropriate model architecture has been employed
+#### 1. An appropriate model architecture has been employed
 
 My model consists of the exact same network employed by NVIDIA in a similar (but real world) project. A summary is provided below:
 
@@ -87,7 +87,7 @@ The model consists of the following layers:
 * ELU Activation
 * Densely Connected, 1 Dimension
 
-####2. Attempts to reduce overfitting in the model
+#### 2. Attempts to reduce overfitting in the model
 
 The model contains a dropout layer after the last 2D convolution/ELU in order to reduce overfitting. 
 
@@ -95,17 +95,17 @@ The model was trained and validated on 20% of the dataset. The split between tra
 
 The model was tested by running it through the provided simulator and ensuring that the vehicle could stay on the track.
 
-####3. Model parameter tuning
+#### 3. Model parameter tuning
 
 The model used an Adam optimizer with a predefined learning rate of 1.0e-4. The learning rate was not tuned manually.
 
-####4. Appropriate training data
+#### 4. Appropriate training data
 
 This project took a lot of trial and error, and one of my datasets had upwards of 80,000 data points from hours of gathering data. By working through better and better models, I was able to use only the data provided by Udacity. This data appears to come from 5-10 laps around track 1. Most of the driving is center lane driving.
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. Solution Design Approach
+#### 1. Solution Design Approach
 
 I used the same model employed by NVIDIA, although in earlier versions of the project, I did not implement the random brightness, shadowing, and distortion the same way as NVIDIA. This final version uses the same pipeline, including random brightness, shadowing, and distortion, as NVIDIA. I settled on this model because other students on Slack were having success with this model, and there was quite a lot of documentation about using this approach.
 
@@ -121,11 +121,11 @@ Then I fed the model the dataset provided by Udacity. This model swerved less th
 
 I am currently testing the same model on my dataset with 80,000+ data points, and will try to submit that if successful and if time allows.
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 The final model architecture is identical to that of NVIDIA, and is described above in Architecture and Training Strategy, section 1.
 
-####3. Creation of the Training Set & Training Process
+#### 3. Creation of the Training Set & Training Process
 
 Although the version in submission uses only the data provided by Udacity, I will describe in detail some of the methods I used to build up a dataset of 80,000+ data points. Then I will describe how I got to the current model. Note that the current version includes random augmentation and image modification.
 
