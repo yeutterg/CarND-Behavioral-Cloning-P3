@@ -3,7 +3,6 @@ import base64
 from datetime import datetime
 import os
 import shutil
-import cv2
 
 import numpy as np
 import socketio
@@ -17,93 +16,77 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
+import utils
 
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
 prev_image_array = None
 
-# ch, rw, col = 160, 320, 3  # Trimmed image format
-# ch, rw, col = 40, 80, 3  # Trimmed image format
+MAX_SPEED = 22
+MIN_SPEED = 9
 
-def process_img(image):
-    """
-    Preprocessing for an image
-    
-    :param image: The image to be processed
-    :return img: The processed image
-    """
-    # Crop from 160x320x3 to 40x320x3
-    img = image[50:140,:,:]
-    
-    # Apply a minor Gaussian blur
-    # img = cv2.GaussianBlur(img, (3,3), 0)
-    
-    # Scale to match NVIDIA input size 66x200x3
-    img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
-    
-    # Convert to YUV color space
-    # img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
-    return img
+speed_limit = MAX_SPEED
 
+# class SimplePIController:
+#     def __init__(self, Kp, Ki):
+#         self.Kp = Kp
+#         self.Ki = Ki
+#         self.set_point = 0.
+#         self.error = 0.
+#         self.integral = 0.
 
-class SimplePIController:
-    def __init__(self, Kp, Ki):
-        self.Kp = Kp
-        self.Ki = Ki
-        self.set_point = 0.
-        self.error = 0.
-        self.integral = 0.
+#     def set_desired(self, desired):
+#         self.set_point = desired
 
-    def set_desired(self, desired):
-        self.set_point = desired
+#     def update(self, measurement):
+#         # proportional error
+#         self.error = self.set_point - measurement
 
-    def update(self, measurement):
-        # proportional error
-        self.error = self.set_point - measurement
+#         # integral error
+#         self.integral += self.error
 
-        # integral error
-        self.integral += self.error
-
-        return self.Kp * self.error + self.Ki * self.integral
+#         return self.Kp * self.error + self.Ki * self.integral
 
 
-controller = SimplePIController(0.1, 0.002)
-set_speed = 9
-controller.set_desired(set_speed)
+# controller = SimplePIController(0.1, 0.002)
+# set_speed = 9
+# controller.set_desired(set_speed)
 
 @sio.on('telemetry')
 def telemetry(sid, data):
     if data:
         # The current steering angle of the car
-        steering_angle = data["steering_angle"]
+        steering_angle = float(data["steering_angle"])
         # The current throttle of the car
-        throttle = data["throttle"]
+        throttle = float(data["throttle"])
         # The current speed of the car
-        speed = data["speed"]
+        speed = float(data["speed"])
         # The current image from the center camera of the car
-        imgString = data["image"]
-        image = Image.open(BytesIO(base64.b64decode(imgString)))
-        image_array = np.asarray(image)
-        img = process_img(image_array)
-        steering_angle = float(model.predict(img[None, :, :, :], batch_size=1))
+        image = Image.open(BytesIO(base64.b64decode(data["image"])))
+        try:
+            image_np = np.asarray(image)       # from PIL image to numpy array
+            image_np = utils.preprocess(image_np) # apply the preprocessing
+            image_np = np.array([image_np])       # the model expects 4D array
 
-        # Flip horizontally
-        # img = cv2.flip(img, 0)
-        # steering_angle = -steering_angle
+            # predict the steering angle for the image
+            steering_angle = float(model.predict(image_np, batch_size=1))
+            # lower the throttle as the speed increases
+            # if the speed is above the current speed limit, we are on a downhill.
+            # make sure we slow down first and then go back to the original max speed.
+            global speed_limit
+            if speed > speed_limit:
+                speed_limit = MIN_SPEED  # slow down
+            else:
+                speed_limit = MAX_SPEED
+            throttle = 1.0 - steering_angle**2 - (speed/speed_limit)**2
 
-        # Plot test images
-        # plt.imshow(img)
-        # plt.savefig('test_images/test.png')
+            print(steering_angle, throttle)
+            send_control(steering_angle, throttle)
+        except Exception as e:
+            print(e)
 
-        throttle = controller.update(float(speed))
-
-        print(steering_angle, throttle)
-        send_control(steering_angle, throttle)
-
-        # save frame
+        # save the frame
         if args.image_folder != '':
             timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
             image_filename = os.path.join(args.image_folder, timestamp)
